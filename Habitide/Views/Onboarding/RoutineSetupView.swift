@@ -9,7 +9,7 @@ struct RoutineSetupView: View {
 
     @State private var routineName: String = "Daily Routine"
     @State private var drafts: [ItemDraft] = []
-    @State private var showingEmojiFor: UUID? = nil
+    @State private var editingEmojiIndex: Int? = nil
 
     struct ItemDraft: Identifiable, Equatable {
         let id = UUID()
@@ -17,7 +17,7 @@ struct RoutineSetupView: View {
         var emoji: String
     }
 
-    private let suggestedEmojis = ["😴","💼","🏃","🥗","👟","💧","📚","🧘","☕️","💪","🛏️","✍️","🎯","🧠","🌱","🚶","🏋️","🍎","🚭","📵"]
+    private let defaultEmojis = ["🎯","🌱","💪","📚","🧘","☕️","🛏️","✍️","🧠","🚶","🏋️","🍎"]
 
     var body: some View {
         NavigationStack {
@@ -27,19 +27,20 @@ struct RoutineSetupView: View {
                 }
 
                 Section("Items") {
-                    ForEach($drafts) { $draft in
+                    ForEach(Array($drafts.enumerated()), id: \.element.id) { index, $draft in
                         HStack(spacing: 12) {
-                            Menu {
-                                ForEach(suggestedEmojis, id: \.self) { e in
-                                    Button(e) { draft.emoji = e }
-                                }
+                            Button {
+                                editingEmojiIndex = index
                             } label: {
                                 Text(draft.emoji.isEmpty ? "❓" : draft.emoji)
                                     .font(.title2)
-                                    .frame(width: 36, height: 36)
-                                    .background(Color.gray.opacity(0.15))
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .frame(width: 40, height: 40)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .fill(Color(.tertiarySystemBackground))
+                                    )
                             }
+                            .buttonStyle(.plain)
                             TextField("Item name", text: $draft.name)
                         }
                     }
@@ -47,7 +48,7 @@ struct RoutineSetupView: View {
                     .onMove { drafts.move(fromOffsets: $0, toOffset: $1) }
 
                     Button {
-                        drafts.append(.init(name: "", emoji: suggestedEmojis.randomElement() ?? "🎯"))
+                        drafts.append(.init(name: "", emoji: defaultEmojis.randomElement() ?? "🎯"))
                     } label: {
                         Label("Add item", systemImage: "plus.circle.fill")
                     }
@@ -67,7 +68,21 @@ struct RoutineSetupView: View {
                 ToolbarItem(placement: .bottomBar) { EditButton() }
             }
             .onAppear(perform: loadInitial)
+            .sheet(item: Binding(
+                get: { editingEmojiIndex.map { EmojiEdit(index: $0) } },
+                set: { editingEmojiIndex = $0?.index }
+            )) { edit in
+                EmojiPickerSheet(emoji: Binding(
+                    get: { drafts[edit.index].emoji },
+                    set: { drafts[edit.index].emoji = $0 }
+                ))
+            }
         }
+    }
+
+    private struct EmojiEdit: Identifiable {
+        let index: Int
+        var id: Int { index }
     }
 
     private var canSave: Bool {
