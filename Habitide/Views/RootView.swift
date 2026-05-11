@@ -22,6 +22,6 @@ struct RootView: View {
             }
         }
         .fontDesign(.rounded)
-        .tint(.brandGreen)
+        .tint(.primary)
     }
 }
