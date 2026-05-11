@@ -12,44 +12,51 @@ struct DayDetailView: View {
             let overall = ScoreCalculator.overall(for: log.itemLogs)
 
             ScrollView {
-                VStack(spacing: 16) {
-                    VStack(spacing: 4) {
-                        Text(log.date.prettyDate)
-                            .font(.title2.bold())
-                        Text(log.routineName)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                VStack(spacing: 18) {
+                    VStack(spacing: 10) {
+                        OverallRing(logs: log.itemLogs, size: 130)
+                        VStack(spacing: 2) {
+                            Text(log.date.formatted("EEEE").uppercased())
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .tracking(1.2)
+                            Text(log.date.formatted("MMMM d, yyyy"))
+                                .font(.system(.title3, design: .rounded).weight(.bold))
+                        }
                     }
                     .padding(.top)
 
-                    VStack(spacing: 0) {
+                    VStack(spacing: 8) {
                         ForEach(sorted, id: \.itemID) { itemLog in
-                            HStack {
-                                Text(itemLog.itemEmoji)
+                            HStack(spacing: 14) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(itemLog.status.color.opacity(0.18))
+                                    Text(itemLog.itemEmoji).font(.title3)
+                                }
+                                .frame(width: 44, height: 44)
                                 Text(itemLog.itemName)
+                                    .font(.system(.body, design: .rounded).weight(.semibold))
                                 Spacer()
-                                Text(itemLog.status.emoji).font(.title3)
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(itemLog.status.color)
+                                    .frame(width: 28, height: 28)
+                                    .overlay(
+                                        Image(systemName: itemLog.status.glyph)
+                                            .font(.caption.bold())
+                                            .foregroundStyle(.white)
+                                    )
                             }
-                            .padding()
-                            if itemLog.itemID != sorted.last?.itemID {
-                                Divider().padding(.leading)
-                            }
+                            .padding(12)
+                            .background(
+                                RoundedRectangle(cornerRadius: Theme.cardCornerRadius, style: .continuous)
+                                    .fill(Color(.secondarySystemBackground))
+                            )
                         }
                     }
-                    .background(Color(.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .padding(.horizontal)
-
-                    HStack {
-                        Text("Overall").font(.headline)
-                        Spacer()
-                        Text(overall.emoji).font(.system(size: 40))
-                    }
-                    .padding()
-                    .background(overall.color.opacity(0.15))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
                     .padding(.horizontal)
                 }
+                .padding(.bottom, 32)
             }
             .navigationTitle("Day")
             .navigationBarTitleDisplayMode(.inline)
@@ -69,6 +76,7 @@ struct DayDetailView: View {
                 }
             }
         }
+        .fontDesign(.rounded)
     }
 
     private func prepareShare(overall: ItemStatus) {

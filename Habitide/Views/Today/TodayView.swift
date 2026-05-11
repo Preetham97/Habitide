@@ -20,11 +20,12 @@ struct TodayView: View {
         NavigationStack {
             Group {
                 if let routine, let log = todayLog ?? ensuredTodayLog(for: routine) {
-                    contentView(routine: routine, log: log)
+                    content(routine: routine, log: log)
                 } else {
                     ContentUnavailableView("No routine yet", systemImage: "list.bullet")
                 }
             }
+            .background(backgroundGradient.ignoresSafeArea())
             .navigationTitle("Today")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -44,39 +45,56 @@ struct TodayView: View {
         }
     }
 
+    private var backgroundGradient: LinearGradient {
+        let color = todayLog.map { ScoreCalculator.overall(for: $0.itemLogs) }?.color ?? .brandMuted
+        return LinearGradient(
+            colors: [color.opacity(0.18), Color(.systemBackground)],
+            startPoint: .top,
+            endPoint: .center
+        )
+    }
+
     @ViewBuilder
-    private func contentView(routine: Routine, log: DayLog) -> some View {
+    private func content(routine: Routine, log: DayLog) -> some View {
         let sortedLogs = log.itemLogs.sorted { $0.sortOrder < $1.sortOrder }
-        let overall = ScoreCalculator.overall(for: log.itemLogs)
 
         ScrollView {
-            VStack(spacing: 16) {
-                VStack(spacing: 4) {
-                    Text(Date().prettyDate)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Text(routine.name)
-                        .font(.title2.bold())
-                }
-                .padding(.top, 8)
+            VStack(spacing: 18) {
+                heroCard(routine: routine, log: log)
 
-                VStack(spacing: 0) {
+                VStack(spacing: 10) {
                     ForEach(sortedLogs, id: \.itemID) { itemLog in
-                        ItemRow(log: itemLog)
-                        if itemLog.itemID != sortedLogs.last?.itemID {
-                            Divider().padding(.leading)
-                        }
+                        ItemCard(log: itemLog)
                     }
                 }
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal)
-
-                OverallCard(overall: overall)
-                    .padding(.horizontal)
             }
             .padding(.bottom, 32)
         }
+    }
+
+    private func heroCard(routine: Routine, log: DayLog) -> some View {
+        VStack(spacing: 14) {
+            VStack(spacing: 2) {
+                Text(Date().formatted("EEEE").uppercased())
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .tracking(1.4)
+                Text(Date().formatted("MMMM d"))
+                    .font(.system(.title, design: .rounded).weight(.bold))
+            }
+
+            OverallRing(logs: log.itemLogs, size: 170)
+                .padding(.vertical, 4)
+
+            let loggedCount = log.itemLogs.filter { $0.status != .unlogged }.count
+            Text("\(loggedCount) of \(log.itemLogs.count) logged")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
+        .padding(.horizontal)
     }
 
     private func ensuredTodayLog(for routine: Routine) -> DayLog? {
@@ -112,43 +130,39 @@ struct TodayView: View {
     }
 }
 
-private struct ItemRow: View {
+private struct ItemCard: View {
     @Bindable var log: ItemLog
 
     var body: some View {
-        HStack(spacing: 12) {
-            Text(log.itemEmoji).font(.title2)
-            Text(log.itemName).font(.body)
-            Spacer()
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(log.status.color.opacity(log.status == .unlogged ? 0.10 : 0.18))
+                Text(log.itemEmoji)
+                    .font(.system(size: 26))
+            }
+            .frame(width: 52, height: 52)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(log.itemName)
+                    .font(.system(.body, design: .rounded).weight(.semibold))
+                Text(log.status.label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 0)
+
             StatusPicker(status: Binding(
                 get: { log.status },
                 set: { log.status = $0 }
             ))
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-    }
-}
-
-private struct OverallCard: View {
-    let overall: ItemStatus
-
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Overall")
-                    .font(.headline)
-                Text(overall.label)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            Text(overall.emoji)
-                .font(.system(size: 44))
-        }
-        .padding()
-        .background(overall.color.opacity(0.15))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: Theme.cardCornerRadius, style: .continuous)
+                .fill(Color(.secondarySystemBackground))
+        )
     }
 }
 

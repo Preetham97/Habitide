@@ -17,19 +17,28 @@ enum ItemStatus: Int, CaseIterable, Codable {
 
     var color: Color {
         switch self {
-        case .unlogged: Color.gray.opacity(0.3)
-        case .red: Color.red
-        case .orange: Color.orange
-        case .green: Color.green
+        case .unlogged: Color.brandMuted
+        case .red: Color.brandRed
+        case .orange: Color.brandOrange
+        case .green: Color.brandGreen
         }
     }
 
     var label: String {
         switch self {
         case .unlogged: "—"
-        case .red: "Bad"
-        case .orange: "Average"
-        case .green: "Good"
+        case .red: "Off"
+        case .orange: "Okay"
+        case .green: "Great"
+        }
+    }
+
+    var glyph: String {
+        switch self {
+        case .unlogged: "circle.dashed"
+        case .red: "xmark"
+        case .orange: "minus"
+        case .green: "checkmark"
         }
     }
 }

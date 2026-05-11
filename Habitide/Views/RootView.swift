@@ -11,15 +11,17 @@ struct RootView: View {
             } else {
                 TabView {
                     TodayView()
-                        .tabItem { Label("Today", systemImage: "checkmark.circle") }
+                        .tabItem { Label("Today", systemImage: "checkmark.circle.fill") }
                     HistoryView()
-                        .tabItem { Label("History", systemImage: "calendar") }
+                        .tabItem { Label("History", systemImage: "square.grid.3x3.fill") }
                     StatsView()
-                        .tabItem { Label("Stats", systemImage: "chart.bar.fill") }
+                        .tabItem { Label("Stats", systemImage: "chart.bar.xaxis") }
                     SettingsView()
-                        .tabItem { Label("Settings", systemImage: "gearshape") }
+                        .tabItem { Label("Settings", systemImage: "gearshape.fill") }
                 }
             }
         }
+        .fontDesign(.rounded)
+        .tint(.brandGreen)
     }
 }

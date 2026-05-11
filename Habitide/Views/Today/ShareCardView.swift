@@ -8,52 +8,69 @@ struct ShareCardView: View {
 
     var body: some View {
         VStack(spacing: 18) {
-            VStack(spacing: 4) {
-                Text(date.prettyDate)
-                    .font(.title2.bold())
-                Text(routineName)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            VStack(spacing: 10) {
-                ForEach(logs.sorted(by: { $0.sortOrder < $1.sortOrder }), id: \.itemID) { log in
-                    HStack {
-                        Text(log.itemEmoji)
-                        Text(log.itemName)
-                            .font(.body)
-                        Spacer()
-                        Text(log.status.emoji)
-                            .font(.title3)
-                    }
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(date.formatted("EEEE").uppercased())
+                        .font(.system(.caption, design: .rounded).weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .tracking(1.2)
+                    Text(date.formatted("MMM d"))
+                        .font(.system(.title2, design: .rounded).weight(.bold))
+                }
+                Spacer()
+                ZStack {
+                    Circle()
+                        .stroke(Color.brandMuted, lineWidth: 6)
+                        .frame(width: 56, height: 56)
+                    Circle()
+                        .trim(from: 0, to: overall == .unlogged ? 0 : 1)
+                        .stroke(overall.color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                        .frame(width: 56, height: 56)
+                    Text(overall.emoji).font(.title3)
                 }
             }
 
-            Divider()
-
-            HStack {
-                Text("Overall")
-                    .font(.headline)
-                Spacer()
-                Text(overall.emoji)
-                    .font(.largeTitle)
+            VStack(spacing: 8) {
+                ForEach(logs.sorted(by: { $0.sortOrder < $1.sortOrder }), id: \.itemID) { log in
+                    HStack(spacing: 12) {
+                        Text(log.itemEmoji).font(.title3)
+                        Text(log.itemName)
+                            .font(.system(.body, design: .rounded).weight(.medium))
+                        Spacer()
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(log.status.color)
+                            .frame(width: 22, height: 22)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color(.tertiarySystemBackground))
+                    )
+                }
             }
 
-            Text("— Habitide")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack {
+                Text("Habitide")
+                    .font(.system(.caption, design: .rounded).weight(.bold))
+                Spacer()
+                Text(overall.label)
+                    .font(.system(.caption, design: .rounded).weight(.semibold))
+                    .foregroundStyle(overall.color)
+            }
         }
-        .padding(24)
-        .frame(width: 360, height: 360)
+        .padding(22)
+        .frame(width: 380, height: 480)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(overall.color.opacity(0.4), lineWidth: 2)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(overall.color.opacity(0.35), lineWidth: 1.5)
         )
         .padding(8)
+        .fontDesign(.rounded)
     }
 }
