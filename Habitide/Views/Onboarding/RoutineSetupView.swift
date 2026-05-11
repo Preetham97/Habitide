@@ -43,21 +43,23 @@ struct RoutineSetupView: View {
 
                 Section {
                     ForEach(Array($drafts.enumerated()), id: \.element.id) { index, $draft in
-                        HStack(spacing: 12) {
+                        HStack(spacing: 10) {
                             Button {
                                 editingEmojiIndex = index
                             } label: {
                                 Text(draft.emoji.isEmpty ? "❓" : draft.emoji)
-                                    .font(.system(size: 18))
-                                    .frame(width: 30, height: 30)
+                                    .font(.system(size: 16))
+                                    .frame(width: 26, height: 26)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                        RoundedRectangle(cornerRadius: 6, style: .continuous)
                                             .fill(Color(.tertiarySystemBackground))
                                     )
                             }
                             .buttonStyle(.plain)
                             TextField("Item name", text: $draft.name)
+                                .font(.system(.subheadline, design: .rounded))
                         }
+                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
                     .onDelete { drafts.remove(atOffsets: $0) }
                     .onMove { drafts.move(fromOffsets: $0, toOffset: $1) }
