@@ -81,7 +81,7 @@ struct TodayView: View {
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
                     .tracking(1.3)
-                Text(Date().formatted("MMMM d"))
+                Text(Date().formatted("MMMM d, yyyy"))
                     .font(.system(.title3, design: .rounded).weight(.bold))
                 Text("\(loggedCount) of \(log.itemLogs.count) logged")
                     .font(.caption)
