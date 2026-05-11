@@ -22,14 +22,6 @@ struct SettingsView: View {
                         Button("Edit routine") { showingEditor = true }
                     }
                 }
-                Section("About") {
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—")
-                            .foregroundStyle(.secondary)
-                    }
-                }
             }
             .navigationTitle("Settings")
             .sheet(isPresented: $showingEditor) {
