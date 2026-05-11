@@ -4,28 +4,39 @@ import UserNotifications
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var context
-    @Query private var routines: [Routine]
-    @State private var showingEditor = false
+    @Query(sort: \Routine.createdAt) private var routines: [Routine]
+
+    @State private var editingRoutine: Routine? = nil
+    @State private var creatingRoutine = false
 
     @State private var reminderEnabled: Bool = NotificationManager.isEnabled
     @State private var reminderDate: Date = SettingsView.dateFromComponents(NotificationManager.reminderTime)
     @State private var authStatus: UNAuthorizationStatus = .notDetermined
 
-    private var routine: Routine? { routines.first(where: { $0.isActive }) ?? routines.first }
-
     var body: some View {
         NavigationStack {
             Form {
-                if let routine {
-                    Section("Routine") {
-                        HStack {
-                            Text(routine.name)
-                            Spacer()
-                            Text("\(routine.items.count) items")
-                                .foregroundStyle(.secondary)
+                Section {
+                    ForEach(routines) { routine in
+                        Button {
+                            editingRoutine = routine
+                        } label: {
+                            routineRow(routine)
                         }
-                        Button("Edit routine") { showingEditor = true }
+                        .buttonStyle(.plain)
                     }
+                    .onDelete(perform: deleteRoutines)
+
+                    Button {
+                        creatingRoutine = true
+                    } label: {
+                        Label("New routine", systemImage: "plus.circle.fill")
+                    }
+                } header: {
+                    Text("Routines")
+                } footer: {
+                    Text(coverageFooter)
+                        .font(.caption)
                 }
 
                 Section {
@@ -47,14 +58,51 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .sheet(isPresented: $showingEditor) {
-                if let routine {
-                    RoutineSetupView(existingRoutine: routine)
-                }
+            .sheet(item: $editingRoutine) { r in
+                RoutineSetupView(existingRoutine: r)
+            }
+            .sheet(isPresented: $creatingRoutine) {
+                RoutineSetupView()
             }
             .task { authStatus = await NotificationManager.authorizationStatus() }
         }
     }
+
+    private func routineRow(_ routine: Routine) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(routine.name)
+                    .font(.system(.body, design: .rounded).weight(.semibold))
+                    .foregroundStyle(.primary)
+                Text("\(routine.items.count) items • \(routine.weekdaysLabel)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.vertical, 2)
+    }
+
+    private var coverageFooter: String {
+        let covered = routines.reduce(0) { $0 | $1.weekdayMask }
+        let uncovered = (~covered) & 0b1111111
+        if uncovered == 0 { return "All days are covered." }
+        let symbols = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        let names = (0..<7).compactMap { (uncovered & (1 << $0)) != 0 ? symbols[$0] : nil }
+        return "No routine for: \(names.joined(separator: ", "))"
+    }
+
+    private func deleteRoutines(_ offsets: IndexSet) {
+        for i in offsets {
+            context.delete(routines[i])
+        }
+        try? context.save()
+    }
+
+    // MARK: - Reminders
 
     private var reminderFooter: String {
         switch authStatus {

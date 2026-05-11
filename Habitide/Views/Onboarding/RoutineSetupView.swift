@@ -7,9 +7,12 @@ struct RoutineSetupView: View {
 
     var existingRoutine: Routine? = nil
 
+    @Query private var allRoutines: [Routine]
     @State private var routineName: String = "Daily Routine"
+    @State private var weekdayMask: Int = 0b1111111
     @State private var drafts: [ItemDraft] = []
     @State private var editingEmojiIndex: Int? = nil
+    @State private var didLoad = false
 
     struct ItemDraft: Identifiable, Equatable {
         let id = UUID()
@@ -24,6 +27,16 @@ struct RoutineSetupView: View {
             Form {
                 Section("Routine name") {
                     TextField("e.g. Daily Routine", text: $routineName)
+                }
+
+                Section {
+                    WeekdayPicker(mask: $weekdayMask)
+                        .padding(.vertical, 4)
+                } header: {
+                    Text("Active days")
+                } footer: {
+                    Text(conflictFooter)
+                        .font(.caption)
                 }
 
                 Section("Items") {
@@ -60,10 +73,8 @@ struct RoutineSetupView: View {
                     Button("Save") { save() }
                         .disabled(!canSave)
                 }
-                if existingRoutine != nil {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Cancel") { dismiss() }
-                    }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .bottomBar) { EditButton() }
             }
@@ -87,30 +98,59 @@ struct RoutineSetupView: View {
 
     private var canSave: Bool {
         !routineName.trimmingCharacters(in: .whitespaces).isEmpty &&
-        drafts.contains { !$0.name.trimmingCharacters(in: .whitespaces).isEmpty }
+        drafts.contains { !$0.name.trimmingCharacters(in: .whitespaces).isEmpty } &&
+        weekdayMask != 0
+    }
+
+    private var conflictFooter: String {
+        let conflicts = others().filter { ($0.weekdayMask & weekdayMask) != 0 }
+        if weekdayMask == 0 { return "Pick at least one day." }
+        if conflicts.isEmpty { return "These days are unique to this routine." }
+        let names = conflicts.map(\.name).joined(separator: ", ")
+        return "Will take days from: \(names)"
+    }
+
+    private func others() -> [Routine] {
+        allRoutines.filter { $0 !== existingRoutine }
     }
 
     private func loadInitial() {
+        guard !didLoad else { return }
+        didLoad = true
+
         if let routine = existingRoutine {
             routineName = routine.name
+            weekdayMask = routine.weekdayMask
             drafts = routine.sortedItems.map { ItemDraft(name: $0.name, emoji: $0.emoji) }
-        } else if drafts.isEmpty {
-            drafts = [
-                .init(name: "Sleep", emoji: "😴"),
-                .init(name: "Work", emoji: "💼"),
-                .init(name: "Exercise", emoji: "🏃"),
-                .init(name: "Diet", emoji: "🥗"),
-                .init(name: "10k Steps", emoji: "👟"),
-                .init(name: "3.5L Water", emoji: "💧"),
-            ]
+        } else {
+            // New routine: default to days not yet covered (or empty if all covered)
+            let covered = allRoutines.reduce(0) { $0 | $1.weekdayMask }
+            let uncovered = (~covered) & 0b1111111
+            weekdayMask = uncovered != 0 ? uncovered : 0b1111111
+            if drafts.isEmpty {
+                drafts = [
+                    .init(name: "Sleep", emoji: "😴"),
+                    .init(name: "Work", emoji: "💼"),
+                    .init(name: "Exercise", emoji: "🏃"),
+                    .init(name: "Diet", emoji: "🥗"),
+                    .init(name: "10k Steps", emoji: "👟"),
+                    .init(name: "3.5L Water", emoji: "💧"),
+                ]
+            }
         }
     }
 
     private func save() {
         let valid = drafts.filter { !$0.name.trimmingCharacters(in: .whitespaces).isEmpty }
 
+        // Resolve day-conflicts: any other routine claiming the same day(s) loses them.
+        for other in others() where (other.weekdayMask & weekdayMask) != 0 {
+            other.weekdayMask &= ~weekdayMask
+        }
+
         if let routine = existingRoutine {
             routine.name = routineName
+            routine.weekdayMask = weekdayMask
             for item in routine.items { context.delete(item) }
             for (idx, d) in valid.enumerated() {
                 let item = RoutineItem(name: d.name, emoji: d.emoji, sortOrder: idx)
@@ -118,7 +158,7 @@ struct RoutineSetupView: View {
                 context.insert(item)
             }
         } else {
-            let routine = Routine(name: routineName)
+            let routine = Routine(name: routineName, weekdayMask: weekdayMask)
             context.insert(routine)
             for (idx, d) in valid.enumerated() {
                 let item = RoutineItem(name: d.name, emoji: d.emoji, sortOrder: idx)
@@ -128,10 +168,10 @@ struct RoutineSetupView: View {
         }
         try? context.save()
         Task {
-            if existingRoutine == nil {
+            if existingRoutine == nil && allRoutines.isEmpty {
                 _ = await NotificationManager.requestAuthorization()
-                await NotificationManager.reschedule()
             }
+            await NotificationManager.reschedule()
         }
         dismiss()
     }

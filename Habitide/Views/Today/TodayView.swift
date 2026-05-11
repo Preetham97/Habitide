@@ -8,7 +8,7 @@ struct TodayView: View {
 
     @State private var shareItem: ShareImageItem? = nil
 
-    private var routine: Routine? { routines.first(where: { $0.isActive }) ?? routines.first }
+    private var routine: Routine? { Routine.forDate(Date(), in: routines) }
 
     private var todayLog: DayLog? {
         let today = Date().startOfDay
@@ -20,8 +20,14 @@ struct TodayView: View {
             Group {
                 if let routine, let log = todayLog ?? ensuredTodayLog(for: routine) {
                     content(routine: routine, log: log)
-                } else {
+                } else if routines.isEmpty {
                     ContentUnavailableView("No routine yet", systemImage: "list.bullet")
+                } else {
+                    ContentUnavailableView {
+                        Label("No routine for today", systemImage: "calendar.badge.exclamationmark")
+                    } description: {
+                        Text("Tap Settings to assign a routine to \(Date().formatted("EEEE")).")
+                    }
                 }
             }
             .background(backgroundGradient.ignoresSafeArea())
