@@ -20,7 +20,6 @@ struct HistoryView: View {
                 VStack(spacing: 18) {
                     summaryRow
                     calendarCard
-                    legend
                 }
                 .padding()
             }

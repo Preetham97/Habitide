@@ -84,15 +84,12 @@ struct StatsView: View {
 
             stackedDistribution(counts: counts, total: total)
 
-            HStack(spacing: 14) {
+            HStack(spacing: 18) {
                 ForEach([ItemStatus.green, .orange, .red], id: \.self) { s in
                     HStack(spacing: 6) {
-                        Circle().fill(s.color).frame(width: 8, height: 8)
+                        Circle().fill(s.color).frame(width: 10, height: 10)
                         Text("\(counts[s] ?? 0)")
                             .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                        Text(s.label)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
                     }
                 }
             }

@@ -33,18 +33,9 @@ struct OverallRing: View {
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: log.statusRaw)
             }
 
-            VStack(spacing: 1) {
-                Text(overall.label.uppercased())
-                    .font(.system(size: size * 0.16, weight: .heavy, design: .rounded))
-                    .tracking(size * 0.012)
-                    .foregroundStyle(overall == .unlogged ? .secondary : overall.color)
-                if overall != .unlogged {
-                    Text("OVERALL")
-                        .font(.system(size: size * 0.07, weight: .semibold, design: .rounded))
-                        .tracking(size * 0.012)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            Image(systemName: overall.glyph)
+                .font(.system(size: size * 0.34, weight: .heavy))
+                .foregroundStyle(overall == .unlogged ? Color.secondary : overall.color)
         }
         .frame(width: size, height: size)
     }

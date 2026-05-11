@@ -103,16 +103,9 @@ struct ShareCardView: View {
                     .rotationEffect(.degrees(-90))
             }
 
-            VStack(spacing: 4) {
-                Text(overall.label.uppercased())
-                    .font(.system(size: 36, weight: .heavy, design: .rounded))
-                    .tracking(2)
-                    .foregroundStyle(.white)
-                Text("OVERALL")
-                    .font(.system(size: 10, weight: .heavy, design: .rounded))
-                    .tracking(2)
-                    .foregroundStyle(.white.opacity(0.5))
-            }
+            Image(systemName: overall.glyph)
+                .font(.system(size: 90, weight: .heavy))
+                .foregroundStyle(overall.color)
         }
         .frame(width: 220, height: 220)
     }
