@@ -3,6 +3,10 @@ import SwiftUI
 struct OverallRing: View {
     let logs: [ItemLog]
     let size: CGFloat
+    /// Optional track color override (defaults to a subtle system fill).
+    var trackColor: Color? = nil
+    /// Optional override for the unlogged-segment color.
+    var unloggedSegmentColor: Color? = nil
 
     private var sortedLogs: [ItemLog] {
         logs.sorted { $0.sortOrder < $1.sortOrder }
@@ -15,10 +19,12 @@ struct OverallRing: View {
         let lineWidth = size * 0.11
         let gapDeg: Double = count >= 6 ? 6 : 8
         let segDeg: Double = (360.0 - gapDeg * Double(count)) / Double(count)
+        let track = trackColor ?? Color.brandMuted.opacity(0.4)
+        let unloggedColor = unloggedSegmentColor ?? Color.brandMuted
 
         ZStack {
             Circle()
-                .stroke(Color.brandMuted.opacity(0.4), lineWidth: lineWidth * 0.55)
+                .stroke(track, lineWidth: lineWidth * 0.55)
 
             ForEach(Array(sortedLogs.enumerated()), id: \.element.itemID) { idx, log in
                 let start = Double(idx) * (segDeg + gapDeg) + gapDeg / 2
@@ -26,7 +32,7 @@ struct OverallRing: View {
                 Circle()
                     .trim(from: start / 360, to: end / 360)
                     .stroke(
-                        log.status == .unlogged ? Color.brandMuted : log.status.color,
+                        log.status == .unlogged ? unloggedColor : log.status.color,
                         style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                     )
                     .rotationEffect(.degrees(-90))

@@ -80,34 +80,12 @@ struct ShareCardView: View {
     }
 
     private var ringSection: some View {
-        let sorted = logs.sorted { $0.sortOrder < $1.sortOrder }
-        let count = max(sorted.count, 1)
-        let gapDeg: Double = 3
-        let segDeg: Double = (360.0 - gapDeg * Double(count)) / Double(count)
-
-        return ZStack {
-            // Subtle base track
-            Circle()
-                .stroke(Color.white.opacity(0.06), lineWidth: 18)
-
-            // Per-item colored segments
-            ForEach(Array(sorted.enumerated()), id: \.element.itemID) { idx, log in
-                let start = Double(idx) * (segDeg + gapDeg) + gapDeg / 2
-                let end = start + segDeg
-                Circle()
-                    .trim(from: start / 360, to: end / 360)
-                    .stroke(
-                        log.status == .unlogged ? Color.white.opacity(0.18) : log.status.color,
-                        style: StrokeStyle(lineWidth: 18, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(-90))
-            }
-
-            Image(systemName: overall.glyph)
-                .font(.system(size: 90, weight: .heavy))
-                .foregroundStyle(overall.color)
-        }
-        .frame(width: 220, height: 220)
+        OverallRing(
+            logs: logs,
+            size: 220,
+            trackColor: Color.white.opacity(0.06),
+            unloggedSegmentColor: Color.white.opacity(0.18)
+        )
     }
 
     private var itemGrid: some View {
