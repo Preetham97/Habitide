@@ -127,6 +127,12 @@ struct RoutineSetupView: View {
             }
         }
         try? context.save()
+        Task {
+            if existingRoutine == nil {
+                _ = await NotificationManager.requestAuthorization()
+                await NotificationManager.reschedule()
+            }
+        }
         dismiss()
     }
 }
