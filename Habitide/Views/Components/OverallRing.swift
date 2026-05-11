@@ -17,8 +17,7 @@ struct OverallRing: View {
     var body: some View {
         let count = max(sortedLogs.count, 1)
         let lineWidth = size * 0.11
-        let gapDeg: Double = count >= 6 ? 6 : 8
-        let segDeg: Double = (360.0 - gapDeg * Double(count)) / Double(count)
+        let segDeg: Double = 360.0 / Double(count)
         let track = trackColor ?? Color.brandMuted.opacity(0.4)
         let unloggedColor = unloggedSegmentColor ?? Color.brandMuted
 
@@ -26,14 +25,16 @@ struct OverallRing: View {
             Circle()
                 .stroke(track, lineWidth: lineWidth * 0.55)
 
+            // Segments meet edge-to-edge with butt caps so same-color runs
+            // visually merge into a continuous arc.
             ForEach(Array(sortedLogs.enumerated()), id: \.element.itemID) { idx, log in
-                let start = Double(idx) * (segDeg + gapDeg) + gapDeg / 2
-                let end = start + segDeg
+                let start = Double(idx) * segDeg
+                let end = start + segDeg + 0.4 // tiny overlap to hide AA seams
                 Circle()
                     .trim(from: start / 360, to: end / 360)
                     .stroke(
                         log.status == .unlogged ? unloggedColor : log.status.color,
-                        style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                        style: StrokeStyle(lineWidth: lineWidth, lineCap: .butt)
                     )
                     .rotationEffect(.degrees(-90))
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: log.statusRaw)
