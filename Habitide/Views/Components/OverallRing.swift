@@ -16,7 +16,9 @@ struct OverallRing: View {
 
     var body: some View {
         let count = max(sortedLogs.count, 1)
-        let lineWidth = size * 0.085
+        // Smaller rings need proportionally thicker strokes to feel balanced.
+        // 220pt → 18.7pt (8.5%), 130pt → 13pt (10%), 92pt → 11pt (12%).
+        let lineWidth = size * 0.085 + max(0, (160 - size) * 0.04)
         let segDeg: Double = 360.0 / Double(count)
         let track = trackColor ?? Color.brandMuted.opacity(0.4)
         let unloggedColor = unloggedSegmentColor ?? Color.brandMuted
