@@ -10,39 +10,27 @@ struct EmojiPickerSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
+            VStack(spacing: 20) {
                 Text(text.isEmpty ? "?" : text)
-                    .font(.system(size: 96))
-                    .frame(width: 140, height: 140)
+                    .font(.system(size: 84))
+                    .frame(width: 130, height: 130)
                     .background(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
                             .fill(Color(.secondarySystemBackground))
                     )
+                    .padding(.top, 12)
+
+                Text("Pick from your keyboard")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
 
                 EmojiTextField(text: $text)
                     .frame(width: 1, height: 1)
                     .opacity(0.01)
                     .focused($focused)
 
-                Text("Tap to open the emoji keyboard")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                Button {
-                    focused = true
-                } label: {
-                    Label("Open keyboard", systemImage: "keyboard")
-                        .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 10)
-                        .background(Capsule().fill(Color.brandGreen))
-                        .foregroundStyle(.white)
-                }
-                .buttonStyle(.plain)
-
                 Spacer()
             }
-            .padding(.top, 32)
             .frame(maxWidth: .infinity)
             .background(Color(.systemBackground))
             .navigationTitle("Pick emoji")
@@ -53,9 +41,7 @@ struct EmojiPickerSheet: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
-                        if !text.isEmpty {
-                            emoji = lastEmoji(in: text) ?? text
-                        }
+                        if !text.isEmpty { emoji = text }
                         dismiss()
                     }
                     .font(.system(.body, design: .rounded).weight(.semibold))
@@ -64,23 +50,15 @@ struct EmojiPickerSheet: View {
             }
             .onAppear {
                 text = ""
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { focused = true }
+                focused = true
             }
             .onChange(of: text) { _, newValue in
-                // Keep only the most recent character
                 if newValue.count > 1, let last = newValue.last {
                     text = String(last)
                 }
             }
         }
-        .presentationDetents([.medium])
-    }
-
-    private func lastEmoji(in s: String) -> String? {
-        for scalar in s.reversed() {
-            return String(scalar)
-        }
-        return nil
+        .presentationDetents([.large])
     }
 }
 
@@ -106,10 +84,7 @@ struct EmojiTextField: UIViewRepresentable {
         let parent: EmojiTextField
         init(_ parent: EmojiTextField) { self.parent = parent }
         func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-            if string.isEmpty {
-                parent.text = ""
-                return true
-            }
+            if string.isEmpty { parent.text = ""; return true }
             parent.text = string
             return true
         }

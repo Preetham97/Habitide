@@ -56,42 +56,42 @@ struct TodayView: View {
         let sortedLogs = log.itemLogs.sorted { $0.sortOrder < $1.sortOrder }
 
         ScrollView {
-            VStack(spacing: 18) {
+            VStack(spacing: 12) {
                 heroCard(routine: routine, log: log)
 
-                VStack(spacing: 10) {
+                VStack(spacing: 6) {
                     ForEach(sortedLogs, id: \.itemID) { itemLog in
                         ItemCard(log: itemLog)
                     }
                 }
                 .padding(.horizontal)
             }
-            .padding(.bottom, 32)
+            .padding(.bottom, 16)
         }
     }
 
     private func heroCard(routine: Routine, log: DayLog) -> some View {
-        VStack(spacing: 14) {
-            VStack(spacing: 2) {
+        let loggedCount = log.itemLogs.filter { $0.status != .unlogged }.count
+
+        return HStack(spacing: 14) {
+            OverallRing(logs: log.itemLogs, size: 92)
+
+            VStack(alignment: .leading, spacing: 2) {
                 Text(Date().formatted("EEEE").uppercased())
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
-                    .tracking(1.4)
+                    .tracking(1.3)
                 Text(Date().formatted("MMMM d"))
-                    .font(.system(.title, design: .rounded).weight(.bold))
+                    .font(.system(.title3, design: .rounded).weight(.bold))
+                Text("\(loggedCount) of \(log.itemLogs.count) logged")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 2)
             }
-
-            OverallRing(logs: log.itemLogs, size: 170)
-                .padding(.vertical, 4)
-
-            let loggedCount = log.itemLogs.filter { $0.status != .unlogged }.count
-            Text("\(loggedCount) of \(log.itemLogs.count) logged")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
         .padding(.horizontal)
+        .padding(.top, 4)
     }
 
     private func ensuredTodayLog(for routine: Routine) -> DayLog? {
@@ -130,33 +130,29 @@ private struct ItemCard: View {
     @Bindable var log: ItemLog
 
     var body: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(log.status.color.opacity(log.status == .unlogged ? 0.10 : 0.18))
-                Text(log.itemEmoji)
-                    .font(.system(size: 26))
-            }
-            .frame(width: 52, height: 52)
+        HStack(spacing: 10) {
+            Text(log.itemEmoji)
+                .font(.system(size: 22))
+                .frame(width: 36, height: 36)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(log.status.color.opacity(log.status == .unlogged ? 0.10 : 0.18))
+                )
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(log.itemName)
-                    .font(.system(.body, design: .rounded).weight(.semibold))
-                Text(log.status.label)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            Text(log.itemName)
+                .font(.system(.subheadline, design: .rounded).weight(.semibold))
 
             Spacer(minLength: 0)
 
             StatusPicker(status: Binding(
                 get: { log.status },
                 set: { log.status = $0 }
-            ))
+            ), compact: true)
         }
-        .padding(12)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
         .background(
-            RoundedRectangle(cornerRadius: Theme.cardCornerRadius, style: .continuous)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(.secondarySystemBackground))
         )
     }
