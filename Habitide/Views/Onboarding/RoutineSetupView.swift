@@ -174,11 +174,3 @@ struct RoutineSetupView: View {
         dismiss()
     }
 }
-  if existingRoutine == nil && allRoutines.isEmpty {
-                _ = await NotificationManager.requestAuthorization()
-            }
-            await NotificationManager.reschedule()
-        }
-        dismiss()
-    }
-}
