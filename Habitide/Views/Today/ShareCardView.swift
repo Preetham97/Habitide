@@ -103,15 +103,8 @@ struct ShareCardView: View {
                     style: StrokeStyle(lineWidth: 14, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-            VStack(spacing: 4) {
-                Text("\(Int(progress * 100))")
-                    .font(.system(size: 74, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                Text("DAY SCORE")
-                    .font(.system(size: 11, weight: .heavy, design: .rounded))
-                    .tracking(2)
-                    .foregroundStyle(.white.opacity(0.55))
-            }
+            Text(overall.emoji)
+                .font(.system(size: 86))
         }
         .frame(width: 200, height: 200)
     }
