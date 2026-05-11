@@ -73,40 +73,48 @@ struct ShareCardView: View {
                     .font(.system(size: 24, weight: .bold, design: .rounded))
             }
             Spacer()
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(routineName)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.7))
-                HStack(spacing: 4) {
-                    Circle().fill(overall.color).frame(width: 8, height: 8)
-                    Text(overall.label.uppercased())
-                        .font(.system(size: 11, weight: .heavy, design: .rounded))
-                        .tracking(1.5)
-                        .foregroundStyle(.white.opacity(0.9))
-                }
-            }
+            Text(routineName)
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.7))
         }
     }
 
     private var ringSection: some View {
-        ZStack {
+        let sorted = logs.sorted { $0.sortOrder < $1.sortOrder }
+        let count = max(sorted.count, 1)
+        let gapDeg: Double = 3
+        let segDeg: Double = (360.0 - gapDeg * Double(count)) / Double(count)
+
+        return ZStack {
+            // Subtle base track
             Circle()
-                .stroke(Color.white.opacity(0.10), lineWidth: 14)
-            Circle()
-                .trim(from: 0, to: max(progress, 0.001))
-                .stroke(
-                    LinearGradient(
-                        colors: [overall.color, overall.color.opacity(0.6)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    style: StrokeStyle(lineWidth: 14, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-            Text(overall.emoji)
-                .font(.system(size: 86))
+                .stroke(Color.white.opacity(0.06), lineWidth: 18)
+
+            // Per-item colored segments
+            ForEach(Array(sorted.enumerated()), id: \.element.itemID) { idx, log in
+                let start = Double(idx) * (segDeg + gapDeg) + gapDeg / 2
+                let end = start + segDeg
+                Circle()
+                    .trim(from: start / 360, to: end / 360)
+                    .stroke(
+                        log.status == .unlogged ? Color.white.opacity(0.18) : log.status.color,
+                        style: StrokeStyle(lineWidth: 18, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+            }
+
+            VStack(spacing: 4) {
+                Text(overall.label.uppercased())
+                    .font(.system(size: 36, weight: .heavy, design: .rounded))
+                    .tracking(2)
+                    .foregroundStyle(.white)
+                Text("OVERALL")
+                    .font(.system(size: 10, weight: .heavy, design: .rounded))
+                    .tracking(2)
+                    .foregroundStyle(.white.opacity(0.5))
+            }
         }
-        .frame(width: 200, height: 200)
+        .frame(width: 220, height: 220)
     }
 
     private var itemGrid: some View {
