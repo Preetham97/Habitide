@@ -4,53 +4,48 @@ struct OverallRing: View {
     let logs: [ItemLog]
     let size: CGFloat
 
-    private var progress: Double {
-        let logged = logs.filter { $0.status != .unlogged }
-        guard !logged.isEmpty else { return 0 }
-        let pts = logged.reduce(0) { $0 + $1.status.rawValue }
-        let max = logged.count * 2
-        return Double(pts) / Double(max)
+    private var sortedLogs: [ItemLog] {
+        logs.sorted { $0.sortOrder < $1.sortOrder }
     }
 
     private var overall: ItemStatus { ScoreCalculator.overall(for: logs) }
-    private var loggedFraction: Double {
-        guard !logs.isEmpty else { return 0 }
-        return Double(logs.filter { $0.status != .unlogged }.count) / Double(logs.count)
-    }
 
     var body: some View {
+        let count = max(sortedLogs.count, 1)
+        let lineWidth = size * 0.11
+        let gapDeg: Double = count >= 6 ? 6 : 8
+        let segDeg: Double = (360.0 - gapDeg * Double(count)) / Double(count)
+
         ZStack {
             Circle()
-                .stroke(Color.brandMuted, lineWidth: size * 0.10)
-            Circle()
-                .trim(from: 0, to: loggedFraction)
-                .stroke(
-                    AngularGradient(
-                        gradient: Gradient(colors: gradientColors),
-                        center: .center,
-                        startAngle: .degrees(-90),
-                        endAngle: .degrees(270)
-                    ),
-                    style: StrokeStyle(lineWidth: size * 0.10, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: loggedFraction)
-            VStack(spacing: 2) {
-                Text(overall.emoji)
-                    .font(.system(size: size * 0.32))
-                Text(overall.label)
-                    .font(.system(size: size * 0.10, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(1.2)
+                .stroke(Color.brandMuted.opacity(0.4), lineWidth: lineWidth * 0.55)
+
+            ForEach(Array(sortedLogs.enumerated()), id: \.element.itemID) { idx, log in
+                let start = Double(idx) * (segDeg + gapDeg) + gapDeg / 2
+                let end = start + segDeg
+                Circle()
+                    .trim(from: start / 360, to: end / 360)
+                    .stroke(
+                        log.status == .unlogged ? Color.brandMuted : log.status.color,
+                        style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: log.statusRaw)
+            }
+
+            VStack(spacing: 1) {
+                Text(overall.label.uppercased())
+                    .font(.system(size: size * 0.16, weight: .heavy, design: .rounded))
+                    .tracking(size * 0.012)
+                    .foregroundStyle(overall == .unlogged ? .secondary : overall.color)
+                if overall != .unlogged {
+                    Text("OVERALL")
+                        .font(.system(size: size * 0.07, weight: .semibold, design: .rounded))
+                        .tracking(size * 0.012)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .frame(width: size, height: size)
-    }
-
-    private var gradientColors: [Color] {
-        if overall == .unlogged { return [.brandMuted, .brandMuted] }
-        let base = overall.color
-        return [base.opacity(0.7), base]
     }
 }
