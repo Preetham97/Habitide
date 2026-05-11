@@ -25,30 +25,32 @@ struct DayDetailView: View {
                     }
                     .padding(.top)
 
-                    VStack(spacing: 8) {
+                    VStack(spacing: 6) {
                         ForEach(sorted, id: \.itemID) { itemLog in
-                            HStack(spacing: 14) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .fill(itemLog.status.color.opacity(0.18))
-                                    Text(itemLog.itemEmoji).font(.title3)
-                                }
-                                .frame(width: 44, height: 44)
+                            HStack(spacing: 10) {
+                                Text(itemLog.itemEmoji)
+                                    .font(.system(size: 22))
+                                    .frame(width: 36, height: 36)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .fill(itemLog.status.color.opacity(0.18))
+                                    )
                                 Text(itemLog.itemName)
-                                    .font(.system(.body, design: .rounded).weight(.semibold))
+                                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
                                 Spacer()
-                                RoundedRectangle(cornerRadius: 8)
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
                                     .fill(itemLog.status.color)
-                                    .frame(width: 28, height: 28)
+                                    .frame(width: 26, height: 26)
                                     .overlay(
                                         Image(systemName: itemLog.status.glyph)
-                                            .font(.caption.bold())
+                                            .font(.system(size: 12, weight: .bold))
                                             .foregroundStyle(.white)
                                     )
                             }
-                            .padding(12)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
                             .background(
-                                RoundedRectangle(cornerRadius: Theme.cardCornerRadius, style: .continuous)
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(Color(.secondarySystemBackground))
                             )
                         }
