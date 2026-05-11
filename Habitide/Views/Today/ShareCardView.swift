@@ -116,15 +116,13 @@ struct ShareCardView: View {
 
     private var footer: some View {
         HStack {
-            HStack(spacing: 6) {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(.black)
-                    .frame(width: 18, height: 18)
-                    .overlay(
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 11, weight: .black))
-                            .foregroundStyle(.white)
-                    )
+            HStack(spacing: 8) {
+                Image("BrandIcon")
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 26, height: 26)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 Text("Habitide")
                     .font(.system(size: 14, weight: .bold, design: .rounded))
             }
