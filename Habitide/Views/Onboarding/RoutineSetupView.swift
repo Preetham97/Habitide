@@ -106,7 +106,8 @@ struct RoutineSetupView: View {
     private var canSave: Bool {
         !routineName.trimmingCharacters(in: .whitespaces).isEmpty &&
         drafts.contains { !$0.name.trimmingCharacters(in: .whitespaces).isEmpty } &&
-        weekdayMask != 0
+        weekdayMask != 0 &&
+        (weekdayMask & lockedMask) == 0  // no overlap with other routines
     }
 
     private var lockedMask: Int {
@@ -114,6 +115,11 @@ struct RoutineSetupView: View {
     }
 
     private var daysFooter: String {
+        let allLocked = (lockedMask | weekdayMask) & 0b1111111 == 0b1111111
+            && weekdayMask == 0
+        if allLocked {
+            return "Every day is already taken by another routine. Edit one of them first to free a day."
+        }
         if weekdayMask == 0 { return "Pick at least one day." }
         let locked = lockedMask & ~weekdayMask & 0b1111111
         if locked == 0 { return "" }
@@ -133,10 +139,11 @@ struct RoutineSetupView: View {
             weekdayMask = routine.weekdayMask
             drafts = routine.sortedItems.map { ItemDraft(id: $0.id, name: $0.name, emoji: $0.emoji) }
         } else {
-            // New routine: default to days not yet covered (or empty if all covered)
+            // New routine: default to days not yet covered. If every day is
+            // already owned by another routine, start with none selected so
+            // the user is forced to free a day up first (Save stays disabled).
             let covered = allRoutines.reduce(0) { $0 | $1.weekdayMask }
-            let uncovered = (~covered) & 0b1111111
-            weekdayMask = uncovered != 0 ? uncovered : 0b1111111
+            weekdayMask = (~covered) & 0b1111111
             if drafts.isEmpty {
                 drafts = [
                     .init(name: "Sleep", emoji: "😴"),
