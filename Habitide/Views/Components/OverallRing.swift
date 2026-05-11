@@ -16,7 +16,7 @@ struct OverallRing: View {
 
     var body: some View {
         let count = max(sortedLogs.count, 1)
-        let lineWidth = size * 0.11
+        let lineWidth = size * 0.085
         let segDeg: Double = 360.0 / Double(count)
         let track = trackColor ?? Color.brandMuted.opacity(0.4)
         let unloggedColor = unloggedSegmentColor ?? Color.brandMuted
