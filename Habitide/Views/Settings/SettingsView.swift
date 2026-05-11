@@ -41,6 +41,7 @@ struct SettingsView: View {
 
                 Section {
                     Toggle("Daily reminder", isOn: $reminderEnabled)
+                        .tint(.brandGreen)
                         .onChange(of: reminderEnabled) { _, newValue in
                             Task { await setEnabled(newValue) }
                         }
