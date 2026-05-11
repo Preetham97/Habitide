@@ -15,7 +15,9 @@ struct RoutineSetupView: View {
     @State private var didLoad = false
 
     struct ItemDraft: Identifiable, Equatable {
-        let id = UUID()
+        /// Reuses the existing RoutineItem.id when editing, so sync logic
+        /// can match drafts back to their underlying records.
+        var id: UUID = UUID()
         var name: String
         var emoji: String
     }
@@ -39,7 +41,7 @@ struct RoutineSetupView: View {
                         .font(.caption)
                 }
 
-                Section("Items") {
+                Section {
                     ForEach(Array($drafts.enumerated()), id: \.element.id) { index, $draft in
                         HStack(spacing: 12) {
                             Button {
@@ -65,6 +67,11 @@ struct RoutineSetupView: View {
                     } label: {
                         Label("Add item", systemImage: "plus.circle.fill")
                     }
+                } header: {
+                    Text("Items")
+                } footer: {
+                    Text("Tap Edit to reorder or remove items.")
+                        .font(.caption)
                 }
             }
             .navigationTitle(existingRoutine == nil ? "Create routine" : "Edit routine")
@@ -124,7 +131,7 @@ struct RoutineSetupView: View {
         if let routine = existingRoutine {
             routineName = routine.name
             weekdayMask = routine.weekdayMask
-            drafts = routine.sortedItems.map { ItemDraft(name: $0.name, emoji: $0.emoji) }
+            drafts = routine.sortedItems.map { ItemDraft(id: $0.id, name: $0.name, emoji: $0.emoji) }
         } else {
             // New routine: default to days not yet covered (or empty if all covered)
             let covered = allRoutines.reduce(0) { $0 | $1.weekdayMask }
@@ -146,25 +153,48 @@ struct RoutineSetupView: View {
     private func save() {
         let valid = drafts.filter { !$0.name.trimmingCharacters(in: .whitespaces).isEmpty }
 
-        if let routine = existingRoutine {
-            routine.name = routineName
-            routine.weekdayMask = weekdayMask
-            for item in routine.items { context.delete(item) }
+        let routine: Routine
+        if let existing = existingRoutine {
+            existing.name = routineName
+            existing.weekdayMask = weekdayMask
+
+            // Edit RoutineItems in-place so their UUIDs stay stable.
+            let existingByID = Dictionary(uniqueKeysWithValues: existing.items.map { ($0.id, $0) })
+            var keptIDs: Set<UUID> = []
             for (idx, d) in valid.enumerated() {
-                let item = RoutineItem(name: d.name, emoji: d.emoji, sortOrder: idx)
-                item.routine = routine
-                context.insert(item)
+                if let item = existingByID[d.id] {
+                    item.name = d.name
+                    item.emoji = d.emoji
+                    item.sortOrder = idx
+                    keptIDs.insert(item.id)
+                } else {
+                    let new = RoutineItem(name: d.name, emoji: d.emoji, sortOrder: idx)
+                    new.id = d.id
+                    new.routine = existing
+                    context.insert(new)
+                    keptIDs.insert(new.id)
+                }
             }
+            for item in existing.items where !keptIDs.contains(item.id) {
+                context.delete(item)
+            }
+            routine = existing
         } else {
-            let routine = Routine(name: routineName, weekdayMask: weekdayMask)
-            context.insert(routine)
+            let new = Routine(name: routineName, weekdayMask: weekdayMask)
+            context.insert(new)
             for (idx, d) in valid.enumerated() {
                 let item = RoutineItem(name: d.name, emoji: d.emoji, sortOrder: idx)
-                item.routine = routine
+                item.id = d.id
+                item.routine = new
                 context.insert(item)
             }
+            routine = new
         }
+
         try? context.save()
+        syncTodayLog(for: routine)
+        try? context.save()
+
         Task {
             if existingRoutine == nil && allRoutines.isEmpty {
                 _ = await NotificationManager.requestAuthorization()
@@ -172,5 +202,37 @@ struct RoutineSetupView: View {
             await NotificationManager.reschedule()
         }
         dismiss()
+    }
+
+    /// Mirror item edits onto today's DayLog so reorders/adds/removes show up
+    /// immediately in the Today view and share card. Past DayLogs are left
+    /// frozen — they stay as the snapshot of how the routine looked that day.
+    private func syncTodayLog(for routine: Routine) {
+        let today = Date().startOfDay
+        let weekday = Calendar.current.component(.weekday, from: today)
+        guard routine.covers(weekday: weekday) else { return }
+
+        let fetch = FetchDescriptor<DayLog>(predicate: #Predicate { $0.date == today })
+        guard let log = try? context.fetch(fetch).first else { return }
+
+        let logsByItemID = Dictionary(uniqueKeysWithValues: log.itemLogs.map { ($0.itemID, $0) })
+        var keptItemIDs: Set<UUID> = []
+
+        for item in routine.sortedItems {
+            if let il = logsByItemID[item.id] {
+                il.sortOrder = item.sortOrder
+                il.itemName = item.name
+                il.itemEmoji = item.emoji
+            } else {
+                let new = ItemLog(item: item, status: .unlogged)
+                new.dayLog = log
+                log.itemLogs.append(new)
+                context.insert(new)
+            }
+            keptItemIDs.insert(item.id)
+        }
+        for il in log.itemLogs where !keptItemIDs.contains(il.itemID) {
+            context.delete(il)
+        }
     }
 }
