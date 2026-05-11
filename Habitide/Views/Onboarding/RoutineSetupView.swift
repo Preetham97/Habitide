@@ -30,12 +30,12 @@ struct RoutineSetupView: View {
                 }
 
                 Section {
-                    WeekdayPicker(mask: $weekdayMask)
+                    WeekdayPicker(mask: $weekdayMask, lockedMask: lockedMask)
                         .padding(.vertical, 4)
                 } header: {
                     Text("Active days")
                 } footer: {
-                    Text(conflictFooter)
+                    Text(daysFooter)
                         .font(.caption)
                 }
 
@@ -102,12 +102,15 @@ struct RoutineSetupView: View {
         weekdayMask != 0
     }
 
-    private var conflictFooter: String {
-        let conflicts = others().filter { ($0.weekdayMask & weekdayMask) != 0 }
+    private var lockedMask: Int {
+        others().reduce(0) { $0 | $1.weekdayMask }
+    }
+
+    private var daysFooter: String {
         if weekdayMask == 0 { return "Pick at least one day." }
-        if conflicts.isEmpty { return "These days are unique to this routine." }
-        let names = conflicts.map(\.name).joined(separator: ", ")
-        return "Will take days from: \(names)"
+        let locked = lockedMask & ~weekdayMask & 0b1111111
+        if locked == 0 { return "" }
+        return "Grayed-out days belong to another routine. Edit it first to free them up."
     }
 
     private func others() -> [Routine] {
@@ -143,11 +146,6 @@ struct RoutineSetupView: View {
     private func save() {
         let valid = drafts.filter { !$0.name.trimmingCharacters(in: .whitespaces).isEmpty }
 
-        // Resolve day-conflicts: any other routine claiming the same day(s) loses them.
-        for other in others() where (other.weekdayMask & weekdayMask) != 0 {
-            other.weekdayMask &= ~weekdayMask
-        }
-
         if let routine = existingRoutine {
             routine.name = routineName
             routine.weekdayMask = weekdayMask
@@ -169,6 +167,14 @@ struct RoutineSetupView: View {
         try? context.save()
         Task {
             if existingRoutine == nil && allRoutines.isEmpty {
+                _ = await NotificationManager.requestAuthorization()
+            }
+            await NotificationManager.reschedule()
+        }
+        dismiss()
+    }
+}
+  if existingRoutine == nil && allRoutines.isEmpty {
                 _ = await NotificationManager.requestAuthorization()
             }
             await NotificationManager.reschedule()
