@@ -148,7 +148,7 @@ struct HistoryView: View {
                 }
                 Text(day.shortDay)
                     .font(.system(size: 13, weight: isToday ? .bold : .semibold, design: .rounded))
-                    .foregroundStyle(status == .unlogged ? .primary : .white)
+                    .foregroundColor(status == .unlogged ? .primary : .white)
             }
             .frame(height: 40)
             .opacity(isFuture ? 0.35 : 1)
