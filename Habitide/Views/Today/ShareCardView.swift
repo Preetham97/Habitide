@@ -69,8 +69,8 @@ struct ShareCardView: View {
                     .font(.system(size: 12, weight: .heavy, design: .rounded))
                     .tracking(2)
                     .foregroundStyle(.white.opacity(0.6))
-                Text(date.formatted("MMMM d"))
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                Text(date.formatted("MMMM d, yyyy"))
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 4) {
