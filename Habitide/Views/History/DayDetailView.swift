@@ -3,8 +3,7 @@ import SwiftUI
 struct DayDetailView: View {
     let log: DayLog
     @Environment(\.dismiss) private var dismiss
-    @State private var shareImage: UIImage? = nil
-    @State private var showingShare = false
+    @State private var shareItem: ShareImageItem? = nil
 
     var body: some View {
         NavigationStack {
@@ -70,10 +69,8 @@ struct DayDetailView: View {
                     } label: { Image(systemName: "square.and.arrow.up") }
                 }
             }
-            .sheet(isPresented: $showingShare) {
-                if let img = shareImage {
-                    ShareSheet(items: [img])
-                }
+            .sheet(item: $shareItem) { item in
+                ShareSheet(items: [item.image])
             }
         }
         .fontDesign(.rounded)
@@ -82,8 +79,7 @@ struct DayDetailView: View {
     private func prepareShare(overall: ItemStatus) {
         let card = ShareCardView(date: log.date, routineName: log.routineName, logs: log.itemLogs, overall: overall)
         if let img = ShareImageRenderer.render(card) {
-            shareImage = img
-            showingShare = true
+            shareItem = ShareImageItem(image: img)
         }
     }
 }

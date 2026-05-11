@@ -6,8 +6,7 @@ struct TodayView: View {
     @Query private var routines: [Routine]
     @Query(sort: \DayLog.date, order: .reverse) private var allLogs: [DayLog]
 
-    @State private var shareImage: UIImage? = nil
-    @State private var showingShare = false
+    @State private var shareItem: ShareImageItem? = nil
 
     private var routine: Routine? { routines.first(where: { $0.isActive }) ?? routines.first }
 
@@ -37,10 +36,8 @@ struct TodayView: View {
                     .disabled(todayLog == nil)
                 }
             }
-            .sheet(isPresented: $showingShare) {
-                if let img = shareImage {
-                    ShareSheet(items: [img])
-                }
+            .sheet(item: $shareItem) { item in
+                ShareSheet(items: [item.image])
             }
         }
     }
@@ -124,8 +121,7 @@ struct TodayView: View {
             overall: overall
         )
         if let img = ShareImageRenderer.render(card) {
-            shareImage = img
-            showingShare = true
+            shareItem = ShareImageItem(image: img)
         }
     }
 }
@@ -164,6 +160,11 @@ private struct ItemCard: View {
                 .fill(Color(.secondarySystemBackground))
         )
     }
+}
+
+struct ShareImageItem: Identifiable {
+    let id = UUID()
+    let image: UIImage
 }
 
 struct ShareSheet: UIViewControllerRepresentable {
