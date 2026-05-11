@@ -36,9 +36,9 @@ enum ItemStatus: Int, CaseIterable, Codable {
     var glyph: String {
         switch self {
         case .unlogged: "circle.dashed"
-        case .red: "xmark"
+        case .red: "arrow.down"
         case .orange: "minus"
-        case .green: "checkmark"
+        case .green: "arrow.up"
         }
     }
 }
