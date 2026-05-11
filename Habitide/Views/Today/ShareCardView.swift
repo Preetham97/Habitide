@@ -6,13 +6,6 @@ struct ShareCardView: View {
     let logs: [ItemLog]
     let overall: ItemStatus
 
-    private var progress: Double {
-        let logged = logs.filter { $0.status != .unlogged }
-        guard !logged.isEmpty else { return 0 }
-        let pts = logged.reduce(0) { $0 + $1.status.rawValue }
-        return Double(pts) / Double(logged.count * 2)
-    }
-
     private var gradientColors: [Color] {
         switch overall {
         case .green:
@@ -30,31 +23,26 @@ struct ShareCardView: View {
         ZStack {
             LinearGradient(colors: gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
 
-            // Decorative glow
             Circle()
                 .fill(overall.color.opacity(0.25))
-                .frame(width: 260, height: 260)
-                .blur(radius: 60)
-                .offset(x: -120, y: -160)
+                .frame(width: 280, height: 280)
+                .blur(radius: 70)
+                .offset(x: -130, y: -200)
 
             Circle()
                 .fill(overall.color.opacity(0.18))
                 .frame(width: 240, height: 240)
-                .blur(radius: 60)
-                .offset(x: 140, y: 200)
+                .blur(radius: 70)
+                .offset(x: 150, y: 220)
 
-            VStack(spacing: 0) {
+            VStack(spacing: 18) {
                 header
-                Spacer(minLength: 12)
-                ringSection
-                Spacer(minLength: 16)
-                itemGrid
-                Spacer(minLength: 12)
+                itemList
                 footer
             }
-            .padding(28)
+            .padding(26)
         }
-        .frame(width: 540, height: 540)
+        .frame(width: 540, height: 720)
         .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
         .padding(8)
         .fontDesign(.rounded)
@@ -63,55 +51,67 @@ struct ShareCardView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
+        HStack(spacing: 16) {
+            OverallRing(
+                logs: logs,
+                size: 110,
+                trackColor: Color.white.opacity(0.08),
+                unloggedSegmentColor: Color.white.opacity(0.20)
+            )
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(date.formatted("EEEE").uppercased())
                     .font(.system(size: 12, weight: .heavy, design: .rounded))
                     .tracking(2)
                     .foregroundStyle(.white.opacity(0.6))
                 Text(date.formatted("MMMM d, yyyy"))
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                Text(routineName)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.65))
+                    .padding(.top, 2)
             }
-            Spacer()
-            Text(routineName)
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.7))
+            Spacer(minLength: 0)
         }
     }
 
-    private var ringSection: some View {
-        OverallRing(
-            logs: logs,
-            size: 220,
-            trackColor: Color.white.opacity(0.06),
-            unloggedSegmentColor: Color.white.opacity(0.18)
-        )
-    }
-
-    private var itemGrid: some View {
+    private var itemList: some View {
         let sorted = logs.sorted { $0.sortOrder < $1.sortOrder }
-        let columns = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
-        return LazyVGrid(columns: columns, spacing: 8) {
+        return VStack(spacing: 8) {
             ForEach(sorted, id: \.itemID) { log in
-                HStack(spacing: 10) {
-                    Text(log.itemEmoji).font(.system(size: 20))
+                HStack(spacing: 12) {
+                    Text(log.itemEmoji)
+                        .font(.system(size: 22))
+                        .frame(width: 36, height: 36)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(log.status == .unlogged
+                                    ? Color.white.opacity(0.08)
+                                    : log.status.color.opacity(0.25))
+                        )
                     Text(log.itemName)
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .lineLimit(1)
-                    Spacer(minLength: 4)
-                    Circle()
-                        .fill(log.status.color)
-                        .frame(width: 14, height: 14)
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    Spacer(minLength: 0)
+                    if log.status == .unlogged {
+                        Image(systemName: "circle.dashed")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white.opacity(0.4))
+                    } else {
+                        Image(systemName: log.status.glyph)
+                            .font(.system(size: 14, weight: .heavy))
+                            .foregroundStyle(.white)
+                            .frame(width: 28, height: 28)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(log.status.color)
+                            )
+                    }
                 }
                 .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+                .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(.white.opacity(0.08))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(.white.opacity(0.06), lineWidth: 1)
                 )
             }
         }
