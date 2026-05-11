@@ -5,6 +5,7 @@ A simple iOS app for tracking daily habits with a three-state color system: 🟩
 ## Features
 
 - **Multiple routines per week** — assign different routines to different weekdays (e.g. a Weekday routine for Mon–Fri and a Weekend routine for Sat–Sun). Each day is owned by exactly one routine; days claimed by another routine appear locked in the editor so you can never double-book.
+- **Editable routines** — rename items, swap emojis, reorder via drag, add/remove. Edits to today's routine immediately reflect in Today and the share card; past days stay frozen as snapshots.
 - **Today view** — pick today's routine automatically by weekday, tap items to mark them ⬇ / ━ / ⬆ (off / okay / great), see the overall verdict in a segmented ring.
 - **Share card** — render the day as a clean light-tinted card with the same segmented ring and item list, then share via Messages, Instagram, etc. Footer uses the actual app icon.
 - **History** — monthly calendar where each day is colored by its overall verdict. Today's cell is outlined; tap any past day for a full breakdown.
