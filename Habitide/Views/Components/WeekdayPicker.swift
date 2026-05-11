@@ -23,7 +23,7 @@ struct WeekdayPicker: View {
                     Text(labels[i])
                         .font(.system(.subheadline, design: .rounded).weight(.bold))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 40)
+                        .frame(height: 32)
                         .background(background(isOn: isOn, isLocked: isLocked))
                         .foregroundColor(foreground(isOn: isOn, isLocked: isLocked))
                 }

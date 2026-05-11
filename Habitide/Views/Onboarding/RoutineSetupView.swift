@@ -48,10 +48,10 @@ struct RoutineSetupView: View {
                                 editingEmojiIndex = index
                             } label: {
                                 Text(draft.emoji.isEmpty ? "❓" : draft.emoji)
-                                    .font(.title2)
-                                    .frame(width: 40, height: 40)
+                                    .font(.system(size: 18))
+                                    .frame(width: 30, height: 30)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
                                             .fill(Color(.tertiarySystemBackground))
                                     )
                             }
