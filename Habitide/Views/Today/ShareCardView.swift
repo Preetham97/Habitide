@@ -7,33 +7,26 @@ struct ShareCardView: View {
     let overall: ItemStatus
 
     private var gradientColors: [Color] {
+        let tint: Color
         switch overall {
-        case .green:
-            return [Color(red: 0.08, green: 0.42, blue: 0.32), Color(red: 0.04, green: 0.18, blue: 0.20)]
-        case .orange:
-            return [Color(red: 0.62, green: 0.36, blue: 0.10), Color(red: 0.24, green: 0.13, blue: 0.06)]
-        case .red:
-            return [Color(red: 0.56, green: 0.16, blue: 0.22), Color(red: 0.22, green: 0.06, blue: 0.10)]
-        default:
-            return [Color(red: 0.18, green: 0.18, blue: 0.22), Color(red: 0.08, green: 0.08, blue: 0.10)]
+        case .green:    tint = .brandGreen
+        case .orange:   tint = .brandOrange
+        case .red:      tint = .brandRed
+        case .unlogged: tint = Color.gray
         }
+        return [tint.opacity(0.22), Color.white]
     }
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
+            LinearGradient(colors: gradientColors, startPoint: .top, endPoint: .bottom)
 
-            Circle()
-                .fill(overall.color.opacity(0.25))
-                .frame(width: 280, height: 280)
-                .blur(radius: 70)
-                .offset(x: -130, y: -200)
-
+            // Soft tint glow
             Circle()
                 .fill(overall.color.opacity(0.18))
-                .frame(width: 240, height: 240)
-                .blur(radius: 70)
-                .offset(x: 150, y: 220)
+                .frame(width: 280, height: 280)
+                .blur(radius: 80)
+                .offset(x: -130, y: -220)
 
             VStack(spacing: 18) {
                 header
@@ -46,8 +39,8 @@ struct ShareCardView: View {
         .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
         .padding(8)
         .fontDesign(.rounded)
-        .colorScheme(.dark)
-        .foregroundStyle(.white)
+        .colorScheme(.light)
+        .foregroundStyle(.black)
     }
 
     private var header: some View {
@@ -55,20 +48,20 @@ struct ShareCardView: View {
             OverallRing(
                 logs: logs,
                 size: 110,
-                trackColor: Color.white.opacity(0.08),
-                unloggedSegmentColor: Color.white.opacity(0.20)
+                trackColor: Color.black.opacity(0.06),
+                unloggedSegmentColor: Color.black.opacity(0.18)
             )
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(date.formatted("EEEE").uppercased())
                     .font(.system(size: 12, weight: .heavy, design: .rounded))
                     .tracking(2)
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(.black.opacity(0.5))
                 Text(date.formatted("MMMM d, yyyy"))
                     .font(.system(size: 22, weight: .bold, design: .rounded))
                 Text(routineName)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.65))
+                    .foregroundStyle(.black.opacity(0.55))
                     .padding(.top, 2)
             }
             Spacer(minLength: 0)
@@ -86,8 +79,8 @@ struct ShareCardView: View {
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
                                 .fill(log.status == .unlogged
-                                    ? Color.white.opacity(0.08)
-                                    : log.status.color.opacity(0.25))
+                                    ? Color.black.opacity(0.04)
+                                    : log.status.color.opacity(0.22))
                         )
                     Text(log.itemName)
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
@@ -95,7 +88,7 @@ struct ShareCardView: View {
                     if log.status == .unlogged {
                         Image(systemName: "circle.dashed")
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.4))
+                            .foregroundStyle(.black.opacity(0.3))
                     } else {
                         Image(systemName: log.status.glyph)
                             .font(.system(size: 14, weight: .heavy))
@@ -111,7 +104,11 @@ struct ShareCardView: View {
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(.white.opacity(0.08))
+                        .fill(.white.opacity(0.6))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(.black.opacity(0.04), lineWidth: 1)
                 )
             }
         }
@@ -121,12 +118,12 @@ struct ShareCardView: View {
         HStack {
             HStack(spacing: 6) {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(.white)
+                    .fill(.black)
                     .frame(width: 18, height: 18)
                     .overlay(
                         Image(systemName: "checkmark")
                             .font(.system(size: 11, weight: .black))
-                            .foregroundStyle(.black)
+                            .foregroundStyle(.white)
                     )
                 Text("Habitide")
                     .font(.system(size: 14, weight: .bold, design: .rounded))
@@ -134,7 +131,7 @@ struct ShareCardView: View {
             Spacer()
             Text(loggedSummary)
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.55))
+                .foregroundStyle(.black.opacity(0.5))
         }
     }
 
