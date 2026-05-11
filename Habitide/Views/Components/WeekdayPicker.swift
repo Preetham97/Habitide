@@ -20,12 +20,7 @@ struct WeekdayPicker: View {
                     }
                     Haptics.light()
                 } label: {
-                    Text(labels[i])
-                        .font(.system(.subheadline, design: .rounded).weight(.bold))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 32)
-                        .background(background(isOn: isOn, isLocked: isLocked))
-                        .foregroundColor(foreground(isOn: isOn, isLocked: isLocked))
+                    chipLabel(letter: labels[i], isOn: isOn, isLocked: isLocked)
                 }
                 .buttonStyle(.plain)
                 .disabled(isLocked)
@@ -33,16 +28,51 @@ struct WeekdayPicker: View {
         }
     }
 
-    private func background(isOn: Bool, isLocked: Bool) -> some View {
-        RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(isOn ? Color.brandGreen
-                  : isLocked ? Color(.tertiarySystemBackground).opacity(0.5)
-                  : Color(.tertiarySystemBackground))
+    @ViewBuilder
+    private func chipLabel(letter: String, isOn: Bool, isLocked: Bool) -> some View {
+        ZStack {
+            Capsule(style: .continuous)
+                .fill(fillStyle(isOn: isOn, isLocked: isLocked))
+                .overlay(
+                    Capsule(style: .continuous)
+                        .strokeBorder(
+                            isOn ? Color.white.opacity(0.18) : Color.primary.opacity(0.06),
+                            lineWidth: 1
+                        )
+                )
+
+            Text(letter)
+                .font(.system(.subheadline, design: .rounded).weight(.heavy))
+                .foregroundColor(foregroundColor(isOn: isOn, isLocked: isLocked))
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 34)
+        .shadow(color: isOn ? Color.brandGreen.opacity(0.45) : .clear, radius: 6, y: 3)
+        .scaleEffect(isOn ? 1.02 : 1.0)
     }
 
-    private func foreground(isOn: Bool, isLocked: Bool) -> Color {
+    private func fillStyle(isOn: Bool, isLocked: Bool) -> AnyShapeStyle {
+        if isOn {
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [
+                        Color.brandGreen,
+                        Color.brandGreen.opacity(0.78)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+        }
+        if isLocked {
+            return AnyShapeStyle(Color(.tertiarySystemBackground).opacity(0.5))
+        }
+        return AnyShapeStyle(Color(.tertiarySystemBackground))
+    }
+
+    private func foregroundColor(isOn: Bool, isLocked: Bool) -> Color {
         if isOn { return .white }
         if isLocked { return .secondary.opacity(0.4) }
-        return .primary
+        return .secondary
     }
 }
