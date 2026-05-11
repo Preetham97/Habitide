@@ -77,9 +77,7 @@ struct TodayView: View {
     }
 
     private func heroCard(routine: Routine, log: DayLog) -> some View {
-        let loggedCount = log.itemLogs.filter { $0.status != .unlogged }.count
-
-        return HStack(spacing: 14) {
+        HStack(spacing: 14) {
             OverallRing(logs: log.itemLogs, size: 92)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -89,8 +87,8 @@ struct TodayView: View {
                     .tracking(1.3)
                 Text(Date().formatted("MMMM d, yyyy"))
                     .font(.system(.title3, design: .rounded).weight(.bold))
-                Text("\(loggedCount) of \(log.itemLogs.count) logged")
-                    .font(.caption)
+                Text(routine.name)
+                    .font(.system(.subheadline, design: .rounded).weight(.medium))
                     .foregroundStyle(.secondary)
                     .padding(.top, 2)
             }
