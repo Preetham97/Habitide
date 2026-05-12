@@ -3,6 +3,11 @@ import SwiftData
 
 struct RootView: View {
     @Query private var routines: [Routine]
+    @AppStorage("appearanceMode") private var appearanceModeRaw: String = AppearanceMode.system.rawValue
+
+    private var appearance: AppearanceMode {
+        AppearanceMode(rawValue: appearanceModeRaw) ?? .system
+    }
 
     var body: some View {
         TabView {
@@ -17,5 +22,6 @@ struct RootView: View {
         }
         .fontDesign(.rounded)
         .tint(.primary)
+        .preferredColorScheme(appearance.colorScheme)
     }
 }

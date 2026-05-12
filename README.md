@@ -11,6 +11,7 @@ A simple iOS app for tracking daily habits with a three-state color system: 🟩
 - **History** — monthly calendar where each day is colored by its overall verdict. Today's cell is outlined; tap any past day for a full breakdown.
 - **Stats** — windowed (7d / 30d / 90d) percentage hero, daily score chart, and per-item stacked-bar breakdown with streak chips.
 - **Daily reminder** — a local notification at a time you pick (defaults to 22:00) nudges you to log your routine. Toggleable in Settings.
+- **Appearance** — System / Light / Dark theme override in Settings.
 - **Full emoji keyboard** for routine items — the full iOS emoji set including search and skin tones, not a hand-picked subset.
 
 All data is local (SwiftData). No accounts, no network.

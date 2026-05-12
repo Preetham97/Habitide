@@ -13,6 +13,8 @@ struct SettingsView: View {
     @State private var reminderDate: Date = SettingsView.dateFromComponents(NotificationManager.reminderTime)
     @State private var authStatus: UNAuthorizationStatus = .notDetermined
 
+    @AppStorage("appearanceMode") private var appearanceModeRaw: String = AppearanceMode.system.rawValue
+
     var body: some View {
         NavigationStack {
             Form {
@@ -37,6 +39,16 @@ struct SettingsView: View {
                 } footer: {
                     Text(coverageFooter)
                         .font(.caption)
+                }
+
+                Section("Appearance") {
+                    Picker("Theme", selection: $appearanceModeRaw) {
+                        ForEach(AppearanceMode.allCases) { mode in
+                            Label(mode.label, systemImage: mode.glyph)
+                                .tag(mode.rawValue)
+                        }
+                    }
+                    .pickerStyle(.menu)
                 }
 
                 Section {
