@@ -7,6 +7,7 @@ struct TodayView: View {
     @Query(sort: \DayLog.date, order: .reverse) private var allLogs: [DayLog]
 
     @State private var shareItem: ShareImageItem? = nil
+    @State private var creatingRoutine = false
 
     private var routine: Routine? { Routine.forDate(Date(), in: routines) }
 
@@ -20,14 +21,8 @@ struct TodayView: View {
             Group {
                 if let routine, let log = todayLog ?? ensuredTodayLog(for: routine) {
                     content(routine: routine, log: log)
-                } else if routines.isEmpty {
-                    ContentUnavailableView("No routine yet", systemImage: "list.bullet")
                 } else {
-                    ContentUnavailableView {
-                        Label("No routine for today", systemImage: "calendar.badge.exclamationmark")
-                    } description: {
-                        Text("Tap Settings to assign a routine to \(Date().formatted("EEEE")).")
-                    }
+                    emptyState
                 }
             }
             .background(backgroundGradient.ignoresSafeArea())
@@ -45,7 +40,47 @@ struct TodayView: View {
             .sheet(item: $shareItem) { item in
                 ShareSheet(items: [item.image])
             }
+            .sheet(isPresented: $creatingRoutine) {
+                RoutineSetupView()
+            }
         }
+    }
+
+    @ViewBuilder
+    private var emptyState: some View {
+        let isFirstLaunch = routines.isEmpty
+        VStack(spacing: 18) {
+            Spacer()
+            Image(systemName: isFirstLaunch ? "sparkles" : "calendar.badge.exclamationmark")
+                .font(.system(size: 48, weight: .semibold))
+                .foregroundStyle(.secondary)
+            VStack(spacing: 6) {
+                Text(isFirstLaunch ? "Welcome to Habitide" : "No routine for today")
+                    .font(.system(.title2, design: .rounded).weight(.bold))
+                Text(isFirstLaunch
+                     ? "Create a routine to start tracking your day."
+                     : "Add a routine that covers \(Date().formatted("EEEE")) to log items today.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+            }
+            Button {
+                Haptics.soft()
+                creatingRoutine = true
+            } label: {
+                Label("Create routine", systemImage: "plus.circle.fill")
+                    .font(.system(.body, design: .rounded).weight(.semibold))
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(Capsule().fill(Color.brandGreen))
+                    .foregroundStyle(.white)
+            }
+            .buttonStyle(.plain)
+            Spacer()
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private var backgroundGradient: LinearGradient {
