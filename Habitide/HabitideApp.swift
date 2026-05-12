@@ -12,13 +12,29 @@ struct HabitideApp: App {
         }
     }()
 
+    @State private var showingSplash = true
+
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .task {
-                    deduplicateRoutineDays()
-                    await NotificationManager.reschedule()
+            ZStack {
+                RootView()
+
+                if showingSplash {
+                    SplashView()
+                        .transition(.opacity)
+                        .zIndex(1)
                 }
+            }
+            .task {
+                deduplicateRoutineDays()
+                await NotificationManager.reschedule()
+            }
+            .task {
+                try? await Task.sleep(nanoseconds: 1_400_000_000) // 1.4s
+                withAnimation(.easeOut(duration: 0.35)) {
+                    showingSplash = false
+                }
+            }
         }
         .modelContainer(container)
     }
