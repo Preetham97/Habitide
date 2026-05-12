@@ -9,7 +9,10 @@ A simple iOS app for tracking daily habits with a three-state color system: 🟩
 - **Today view** — pick today's routine automatically by weekday, tap items to mark them ⬇ / ━ / ⬆ (off / okay / great), see the overall verdict in a segmented ring.
 - **Share card** — render the day as a clean light-tinted card with the same segmented ring and item list, then share via Messages, Instagram, etc. Footer uses the actual app icon.
 - **History** — monthly calendar where each day is colored by its overall verdict. Today's cell is outlined; tap any past day for a full breakdown.
-- **Stats** — windowed (7d / 30d / 90d) percentage hero, daily score chart, and per-item stacked-bar breakdown with streak chips.
+- **Stats** — three layers of insight:
+  - **Highlights** — dynamic sentence-based headlines picked from your data (e.g. "5-day streak", "Strongest on Saturdays", "Diet up 23%")
+  - **Patterns** — day-of-week breakdown showing your green % per weekday, plus a 12-week trend bar chart
+  - **Items** — tappable rows per item with a 30-day mini strip, current streak, and delta vs the previous 30 days. Tap one for a full drill-down (calendar, longest streak, weekday breakdown)
 - **Daily reminder** — a local notification at a time you pick (defaults to 22:00) nudges you to log your routine. Toggleable in Settings.
 - **Appearance** — System / Light / Dark theme override in Settings.
 - **Full emoji keyboard** for routine items — the full iOS emoji set including search and skin tones, not a hand-picked subset.
@@ -76,7 +79,6 @@ Habitide/
 
 ## Roadmap
 
-- [ ] Headline insights on the Stats page (best day of week, week-over-week deltas)
 - [ ] Home-screen widget for one-tap logging
 - [ ] iCloud sync across devices
 - [ ] Export to CSV
