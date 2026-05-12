@@ -7,7 +7,7 @@ struct SplashView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(.systemBackground).ignoresSafeArea()
 
             VStack(spacing: 18) {
                 Image("BrandIcon")
@@ -22,7 +22,7 @@ struct SplashView: View {
                 Text("Habitide")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .tracking(0.5)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .opacity(wordmarkOpacity)
             }
         }
